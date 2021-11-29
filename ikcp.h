@@ -16,6 +16,20 @@
 #include <stdlib.h>
 #include <assert.h>
 
+// Changes to original KCP code:
+// 1) Reduce KCP buffer size to max MTU size
+// https://github.com/skywind3000/kcp/issues/264
+#define KCP_BUFFER_SIZE_OPTIMIZATION
+// 2) Let user replace KCP data buffer after each ikcp_output when user wants to continue using the buffer received in ikcp_output
+#define KCP_EXTERNAL_BUFFER
+// 3) Optimize ikcp_check to consider fast resend for update intervals
+#define KCP_INTERVAL_OPTIMIZATION
+// 4) API for how many packets is waiting to be received
+#define KCP_WAIT_RCV_SUPPORT
+// 5) Always use malloc/free hooks with user parameter 
+#define KCP_USER_ALLOC
+// 6) No logging
+#define KCP_DISABLE_LOGGING
 
 //=====================================================================
 // 32BIT INTEGER DEFINITION 
@@ -311,9 +325,13 @@ struct IKCPCB
 	int fastresend;
 	int fastlimit;
 	int nocwnd, stream;
+#ifndef KCP_DISABLE_LOGGING
 	int logmask;
+#endif
 	int (*output)(const char *buf, int len, struct IKCPCB *kcp, void *user);
+#ifndef KCP_DISABLE_LOGGING
 	void (*writelog)(const char *log, struct IKCPCB *kcp, void *user);
+#endif
 };
 
 
@@ -390,6 +408,11 @@ int ikcp_wndsize(ikcpcb *kcp, int sndwnd, int rcvwnd);
 // get how many packet is waiting to be sent
 int ikcp_waitsnd(const ikcpcb *kcp);
 
+#ifdef KCP_WAIT_RCV_SUPPORT
+// get how many packet is waiting to be receive
+int ikcp_waitrcv(const ikcpcb *kcp);
+#endif
+
 // fastest: ikcp_nodelay(kcp, 1, 20, 2, 1)
 // nodelay: 0:disable(default), 1:enable
 // interval: internal update timer interval in millisec, default is 100ms 
@@ -401,7 +424,11 @@ int ikcp_nodelay(ikcpcb *kcp, int nodelay, int interval, int resend, int nc);
 void ikcp_log(ikcpcb *kcp, int mask, const char *fmt, ...);
 
 // setup allocator
+#ifdef KCP_USER_ALLOC
+void ikcp_allocator(void* (*new_malloc)(void*, size_t), void (*new_free)(void*, void*));
+#else
 void ikcp_allocator(void* (*new_malloc)(size_t), void (*new_free)(void*));
+#endif
 
 // read conv
 IUINT32 ikcp_getconv(const void *ptr);
