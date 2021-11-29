@@ -19,17 +19,17 @@
 // Changes to original KCP code:
 // 1) Reduce KCP buffer size to max MTU size
 // https://github.com/skywind3000/kcp/issues/264
-#define KCP_BUFFER_SIZE_OPTIMIZATION
+// #define KCP_BUFFER_SIZE_OPTIMIZATION
 // 2) Let user replace KCP data buffer after each ikcp_output when user wants to continue using the buffer received in ikcp_output
-#define KCP_EXTERNAL_BUFFER
+// #define KCP_EXTERNAL_BUFFER
 // 3) Optimize ikcp_check to consider fast resend for update intervals
-#define KCP_INTERVAL_OPTIMIZATION
+// #define KCP_INTERVAL_OPTIMIZATION
 // 4) API for how many packets is waiting to be received
-#define KCP_WAIT_RCV_SUPPORT
+// #define KCP_WAIT_RCV_SUPPORT
 // 5) Always use malloc/free hooks with user parameter 
-#define KCP_USER_ALLOC
+// #define KCP_USER_ALLOC
 // 6) No logging
-#define KCP_DISABLE_LOGGING
+// #define KCP_DISABLE_LOGGING
 
 //=====================================================================
 // 32BIT INTEGER DEFINITION 
