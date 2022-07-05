@@ -30,6 +30,8 @@
 // #define KCP_USER_ALLOC
 // 6) No logging
 // #define KCP_DISABLE_LOGGING
+// 7) ikcp_recv assumes buffer length equals ikcp_peeksize()
+// #define KCP_RECV_ASSUME_PEEK
 
 //=====================================================================
 // 32BIT INTEGER DEFINITION 

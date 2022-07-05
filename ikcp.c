@@ -412,12 +412,17 @@ void ikcp_setoutput(ikcpcb *kcp, int (*output)(const char *buf, int len,
 int ikcp_recv(ikcpcb *kcp, char *buffer, int len)
 {
 	struct IQUEUEHEAD *p;
+#ifndef KCP_RECV_ASSUME_PEEK
 	int ispeek = (len < 0)? 1 : 0;
 	int peeksize;
+#else
+	assert(len > 0);
+#endif
 	int recover = 0;
 	IKCPSEG *seg;
 	assert(kcp);
 
+#ifndef KCP_RECV_ASSUME_PEEK
 	if (iqueue_is_empty(&kcp->rcv_queue))
 		return -1;
 
@@ -430,6 +435,9 @@ int ikcp_recv(ikcpcb *kcp, char *buffer, int len)
 
 	if (peeksize > len) 
 		return -3;
+#else
+	assert(ikcp_peeksize(kcp) == len);
+#endif
 
 	if (kcp->nrcv_que >= kcp->rcv_wnd)
 		recover = 1;
@@ -453,17 +461,23 @@ int ikcp_recv(ikcpcb *kcp, char *buffer, int len)
 		}
 #endif
 
-		if (ispeek == 0) {
+#ifndef KCP_RECV_ASSUME_PEEK
+		if (ispeek == 0) 
+#endif
+		{
 			iqueue_del(&seg->node);
 			ikcp_segment_delete(kcp, seg);
 			kcp->nrcv_que--;
 		}
 
+
 		if (fragment == 0) 
 			break;
 	}
 
+#ifndef KCP_RECV_ASSUME_PEEK
 	assert(len == peeksize);
+#endif
 
 	// move available data from rcv_buf -> rcv_queue
 	while (! iqueue_is_empty(&kcp->rcv_buf)) {
